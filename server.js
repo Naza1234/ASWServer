@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 
 const corsOptions = {
-  origin: '*',
+  origin: 'https://americansave.pro',
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
 };
 
