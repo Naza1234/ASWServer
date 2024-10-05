@@ -14,33 +14,32 @@ exports.createWithDrawal = async (req, res) => {
     }
 };
 // Get all withdrawals
-const mongoose = require('mongoose');
-
-try {
-    const withDrawals = await WithDrawal.find();
-    
-    const newArray = await Promise.all(withDrawals.map(async (withDrawal) => {
-        // Skip if userId is missing or invalid
-        if (!withDrawal.userId || !mongoose.Types.ObjectId.isValid(withDrawal.userId)) {
-            return null; // Skip this entry
-        }
+exports.getAllWithDrawals = async (req, res) => {
+    try {
+        const withDrawals = await WithDrawal.find();
         
-        const user = await User.findById(withDrawal.userId);
+        const newArray = await Promise.all(withDrawals.map(async (withDrawal) => {
+            // Skip if userId is missing or invalid
+            if (!withDrawal.userId || !mongoose.Types.ObjectId.isValid(withDrawal.userId)) {
+                return null; // Skip this entry
+            }
+            
+            const user = await User.findById(withDrawal.userId);
+            
+            return {
+                user,
+                withDrawal
+            };
+        }));
         
-        return {
-            user,
-            withDrawal
-        };
-    }));
-    
-    // Filter out any null values (entries with invalid or missing userId)
-    const filteredArray = newArray.filter(item => item !== null);
-    
-    res.json(filteredArray);
-} catch (error) {
-    res.status(500).json({ message: error.message });
-}
-
+        // Filter out any null values (entries with invalid or missing userId)
+        const filteredArray = newArray.filter(item => item !== null);
+        
+        res.json(filteredArray);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 
 // Find one withdrawal by id
 exports.findOneWithDrawalById = async (req, res) => {
