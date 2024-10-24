@@ -50,22 +50,37 @@ exports.uplaod=multer({
     }
 }).any()
 
-// Get all shipment packages
+
+const mongoose = require('mongoose'); // Ensure this is imported for ObjectId checking
+
 exports.getAllDeposits = async (req, res) => {
     try {
         const deposits = await Deposit.find();
+     
+
         const newArray = await Promise.all(deposits.map(async (deposit) => {
-            const user = await User.findById(deposit.userId);
-            return {
-                user,
-                deposit
-            };
+            // Check if userId exists and is a valid ObjectId
+            if (deposit.userId && mongoose.Types.ObjectId.isValid(deposit.userId)) {
+                const user = await User.findById(deposit.userId);
+                return {
+                    user,
+                    deposit
+                };
+            } else {
+                // If userId is missing or invalid, skip this deposit
+                return null;
+            }
         }));
-        res.json(newArray);
+
+        // Filter out any null values (i.e., deposits without valid userId)
+        const filteredArray = newArray.filter(item => item !== null);
+
+        res.json(filteredArray);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
+
 
 
 // Find one deposit by id
@@ -89,6 +104,34 @@ exports.findOneDepositById = async (req, res) => {
 };
 
 
+// Find one deposit by id
+exports.findAllDepositById = async (req, res) => {
+    try {
+        const deposits = await Deposit.find({userId : req.params.id});
+     
+
+        const newArray = await Promise.all(deposits.map(async (deposit) => {
+            // Check if userId exists and is a valid ObjectId
+            if (deposit.userId && mongoose.Types.ObjectId.isValid(deposit.userId)) {
+                const user = await User.findById(deposit.userId);
+                return {
+                    user,
+                    deposit
+                };
+            } else {
+                // If userId is missing or invalid, skip this deposit
+                return null;
+            }
+        }));
+
+        // Filter out any null values (i.e., deposits without valid userId)
+        const filteredArray = newArray.filter(item => item !== null);
+
+        res.json(filteredArray);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 // Delete one shipment package by id
 exports.deleteOneDepositById = async (req, res) => {
     try {

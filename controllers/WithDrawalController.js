@@ -55,6 +55,35 @@ exports.findOneWithDrawalById = async (req, res) => {
     }
 };
 
+
+// Get one withdrawal by ID
+exports.findAllWithDrawalById = async (req, res) => {
+    try {
+       const withDrawals= await WithDrawal.find({userId : req.params.id});
+     
+
+       const newArray = await Promise.all(withDrawals.map(async (withDrawal) => {
+        // Skip if userId is missing or invalid
+        if (!withDrawal.userId || !mongoose.Types.ObjectId.isValid(withDrawal.userId)) {
+            return null; // Skip this entry
+        }
+        
+        const user = await User.findById(withDrawal.userId);
+        
+        return { user, withDrawal };
+    }));
+
+    
+    // Filter out any null values (entries with invalid or missing userId)
+    const filteredArray = newArray.filter(item => item !== null);
+    
+    res.json(filteredArray);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+
 // Delete one withdrawal by ID
 exports.deleteOneWithDrawalById = async (req, res) => {
     try {
