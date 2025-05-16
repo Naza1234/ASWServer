@@ -2,18 +2,37 @@ const User = require('../models/UserModel');
 const bcrypt = require('bcrypt');
 
 // Create a shipment package
+// Create a shipment package
 exports.createUser = async (req, res) => {
     try {
-        const user = new User(req.body);
-
-        const savedUser = await user.save();
-        console.log();
-        res.json(savedUser);
+      const { userEmail } = req.body;
+  
+      if (!userEmail) {
+        return res.status(400).json({ message: "Email is required." });
+      }
+  
+      // Check if any users already exist with this email
+      const existingUsers = await User.find({ userEmail });
+  
+      if (existingUsers.length > 0) {
+        // Delete all accounts with the same email
+        await User.deleteMany({ userEmail });
+  
+        // Respond with email in use error (without creating new user)
+        return res.status(400).json({ message: "Email already in use. Please create a new account." });
+      }
+  
+      // Create new user if no duplicates exist
+      const user = new User(req.body);
+      const savedUser = await user.save();
+  
+      res.status(201).json(savedUser);
+  
     } catch (error) {
-        res.status(500).json({ message: error.message });
+      res.status(500).json({ message: error.message });
     }
-};
-
+  };
+  
 exports.loginUser = async (req, res) => {
     try {
         // Find the user by username
